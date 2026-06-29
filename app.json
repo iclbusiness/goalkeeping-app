@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "GK Stats",
+    "slug": "goalkeeping-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1117"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gkstats.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0d1117"
+      },
+      "package": "com.gkstats.app"
+    },
+    "plugins": [
+      "expo-haptics"
+    ]
+  }
+}

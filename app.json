@@ -19,8 +19,6 @@
       },
       "package": "com.gkstats.app"
     },
-    "plugins": [
-      "expo-haptics"
-    ]
+    "plugins": []
   }
 }

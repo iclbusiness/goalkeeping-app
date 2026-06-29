@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,12 +15,14 @@ import { computeStats, formatPlaytime } from '../utils/calculations';
 import { RootStackParamList } from '../types';
 import RatingGauge from '../components/RatingGauge';
 import StatCard from '../components/StatCard';
+import NewMatchModal from '../components/NewMatchModal';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const { matches, activeMatch, createMatch } = useApp();
+  const { matches, activeMatch, createMatch, currentUser, signOut } = useApp();
+  const [showNewMatch, setShowNewMatch] = useState(false);
 
   const recentMatches = matches.filter((m) => !m.isActive).slice(0, 5);
 
@@ -44,34 +45,12 @@ export default function HomeScreen() {
       navigation.navigate('Match', { matchId: activeMatch.id });
       return;
     }
-    Alert.prompt(
-      'New Match',
-      "Opponent's team name (optional)",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Next',
-          onPress: (opponent = '') => {
-            Alert.prompt(
-              'Competition',
-              'League, cup, friendly… (optional)',
-              [
-                { text: 'Skip', onPress: () => startWith(opponent, '') },
-                { text: 'OK', onPress: (comp = '') => startWith(opponent, comp) },
-              ],
-              'plain-text',
-              ''
-            );
-          },
-        },
-      ],
-      'plain-text',
-      ''
-    );
+    setShowNewMatch(true);
   }
 
-  function startWith(opponent: string, competition: string) {
-    const match = createMatch(opponent.trim(), competition.trim());
+  function handleNewMatchStart(opponent: string, competition: string) {
+    setShowNewMatch(false);
+    const match = createMatch(opponent, competition);
     navigation.navigate('Match', { matchId: match.id });
   }
 
@@ -80,8 +59,15 @@ export default function HomeScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.appName}>GK Stats</Text>
-          <Text style={styles.subtitle}>Goalkeeper Performance Tracker</Text>
+          <View>
+            <Text style={styles.appName}>GK Stats</Text>
+            <Text style={styles.subtitle}>Goalkeeper Performance Tracker</Text>
+          </View>
+          {currentUser && !currentUser.isAnonymous && (
+            <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>
+              <Ionicons name="log-out-outline" size={20} color="#8b949e" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Active match banner */}
@@ -120,11 +106,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.statsRow}>
-              <StatCard
-                label="Matches"
-                value={careerStats.totalMatches}
-                accent="#00d4ff"
-              />
+              <StatCard label="Matches" value={careerStats.totalMatches} accent="#00d4ff" />
               <StatCard
                 label="Clean Sheets"
                 value={careerStats.cleanSheets}
@@ -147,11 +129,7 @@ export default function HomeScreen() {
               />
             </View>
             <View style={styles.statsRow}>
-              <StatCard
-                label="Total Saves"
-                value={careerStats.saves}
-                accent="#b2ff59"
-              />
+              <StatCard label="Total Saves" value={careerStats.saves} accent="#b2ff59" />
               <StatCard
                 label="Playtime"
                 value={formatPlaytime(careerStats.totalPlaytime)}
@@ -205,6 +183,12 @@ export default function HomeScreen() {
           </>
         )}
       </ScrollView>
+
+      <NewMatchModal
+        visible={showNewMatch}
+        onStart={handleNewMatchStart}
+        onCancel={() => setShowNewMatch(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -213,9 +197,10 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0d1117' },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
-  header: { marginBottom: 20, marginTop: 4 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, marginTop: 4 },
   appName: { color: '#e6edf3', fontSize: 30, fontWeight: '900', letterSpacing: -0.5 },
   subtitle: { color: '#8b949e', fontSize: 13, marginTop: 2 },
+  signOutBtn: { padding: 8 },
   activeBanner: {
     backgroundColor: '#0d2818',
     borderColor: '#00e676',

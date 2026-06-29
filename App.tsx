@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,11 +7,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useApp } from './src/context/AppContext';
+import { isFirebaseConfigured } from './src/config/firebase';
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import MatchScreen from './src/screens/MatchScreen';
 import MatchSummaryScreen from './src/screens/MatchSummaryScreen';
+import AuthScreen from './src/screens/AuthScreen';
 import { RootStackParamList, TabParamList } from './src/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -58,31 +61,52 @@ function MainTabs() {
   );
 }
 
+function RootNavigator() {
+  const { currentUser, isAuthLoading } = useApp();
+  const needsAuth = isFirebaseConfigured() && !currentUser;
+
+  if (isAuthLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0d1117', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator color="#00e676" size="large" />
+      </View>
+    );
+  }
+
+  if (needsAuth) {
+    return <AuthScreen />;
+  }
+
+  return (
+    <NavigationContainer theme={NAV_THEME}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#0d1117' },
+        }}
+      >
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen
+          name="Match"
+          component={MatchScreen}
+          options={{ animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
+          name="MatchSummary"
+          component={MatchSummaryScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <NavigationContainer theme={NAV_THEME}>
-          <StatusBar style="light" />
-          <Stack.Navigator
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#0d1117' },
-            }}
-          >
-            <Stack.Screen name="MainTabs" component={MainTabs} />
-            <Stack.Screen
-              name="Match"
-              component={MatchScreen}
-              options={{ animation: 'slide_from_bottom' }}
-            />
-            <Stack.Screen
-              name="MatchSummary"
-              component={MatchSummaryScreen}
-              options={{ animation: 'slide_from_right' }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <StatusBar style="light" />
+        <RootNavigator />
       </AppProvider>
     </SafeAreaProvider>
   );

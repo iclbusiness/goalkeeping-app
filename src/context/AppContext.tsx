@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { onAuthStateChanged, signOut as fbSignOut, User } from 'firebase/auth';
 import { Match, StatEventType, StatEvent } from '../types';
-import { loadMatches, saveMatch, deleteMatch as deleteMatchFromStorage } from '../utils/storage';
+import { auth, isFirebaseConfigured } from '../config/firebase';
+import {
+  loadMatchesForUser,
+  saveMatchForUser,
+  deleteMatchForUser,
+  subscribeToMatches,
+} from '../utils/cloudStorage';
+import { loadMatches } from '../utils/storage';
 import { generateId, getElapsedSeconds } from '../utils/calculations';
 
 interface AppContextValue {
@@ -8,6 +16,8 @@ interface AppContextValue {
   activeMatch: Match | null;
   elapsedSeconds: number;
   isTimerRunning: boolean;
+  currentUser: User | null;
+  isAuthLoading: boolean;
   createMatch: (opponent: string, competition: string) => Match;
   logEvent: (type: StatEventType) => void;
   undoLastEvent: () => void;
@@ -16,6 +26,7 @@ interface AppContextValue {
   endMatch: () => Promise<void>;
   deleteMatch: (matchId: string) => Promise<void>;
   getMatchById: (id: string) => Match | undefined;
+  signOut: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -24,11 +35,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [activeMatch, setActiveMatch] = useState<Match | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(isFirebaseConfigured());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const uid = currentUser?.uid ?? null;
 
-  // Load persisted matches on mount
+  // Auth state listener
   useEffect(() => {
-    loadMatches().then((loaded) => {
+    if (!isFirebaseConfigured()) return;
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setIsAuthLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  // Load matches when auth resolves
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    loadMatchesForUser(uid).then((loaded) => {
       setMatches(loaded);
       const active = loaded.find((m) => m.isActive);
       if (active) {
@@ -36,8 +62,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         startTickerFor(active);
       }
     });
+
+    // Subscribe to real-time updates for logged-in users
+    if (uid && isFirebaseConfigured()) {
+      const unsub = subscribeToMatches(uid, (cloudMatches) => {
+        setMatches(cloudMatches);
+        const active = cloudMatches.find((m) => m.isActive);
+        if (active) setActiveMatch(active);
+      });
+      return () => {
+        unsub();
+        stopTicker();
+      };
+    }
     return () => stopTicker();
-  }, []);
+  }, [uid, isAuthLoading]);
 
   const isTimerRunning = activeMatch?.pausedAt === null && activeMatch?.isActive === true;
 
@@ -55,26 +94,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const createMatch = useCallback((opponent: string, competition: string): Match => {
-    const now = Date.now();
-    const match: Match = {
-      id: generateId(),
-      opponent,
-      competition,
-      date: now,
-      playtime: 0,
-      events: [],
-      isActive: true,
-      startedAt: now,
-      totalPausedMs: 0,
-      pausedAt: null,
-    };
-    setActiveMatch(match);
-    saveMatch(match);
-    setMatches((prev) => [match, ...prev.filter((m) => m.id !== match.id)]);
-    startTickerFor(match);
-    return match;
-  }, []);
+  const createMatch = useCallback(
+    (opponent: string, competition: string): Match => {
+      const now = Date.now();
+      const match: Match = {
+        id: generateId(),
+        opponent,
+        competition,
+        date: now,
+        playtime: 0,
+        events: [],
+        isActive: true,
+        startedAt: now,
+        totalPausedMs: 0,
+        pausedAt: null,
+      };
+      setActiveMatch(match);
+      saveMatchForUser(match, uid);
+      setMatches((prev) => [match, ...prev.filter((m) => m.id !== match.id)]);
+      startTickerFor(match);
+      return match;
+    },
+    [uid]
+  );
 
   const logEvent = useCallback(
     (type: StatEventType) => {
@@ -87,35 +129,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           createdAt: Date.now(),
         };
         const updated = { ...prev, events: [...prev.events, event] };
-        saveMatch(updated);
+        saveMatchForUser(updated, uid);
         setMatches((all) => all.map((m) => (m.id === updated.id ? updated : m)));
         startTickerFor(updated);
         return updated;
       });
     },
-    []
+    [uid]
   );
 
   const undoLastEvent = useCallback(() => {
     setActiveMatch((prev) => {
       if (!prev || prev.events.length === 0) return prev;
       const updated = { ...prev, events: prev.events.slice(0, -1) };
-      saveMatch(updated);
+      saveMatchForUser(updated, uid);
       setMatches((all) => all.map((m) => (m.id === updated.id ? updated : m)));
       return updated;
     });
-  }, []);
+  }, [uid]);
 
   const pauseTimer = useCallback(() => {
     setActiveMatch((prev) => {
       if (!prev || prev.pausedAt !== null) return prev;
       const updated = { ...prev, pausedAt: Date.now() };
-      saveMatch(updated);
+      saveMatchForUser(updated, uid);
       setMatches((all) => all.map((m) => (m.id === updated.id ? updated : m)));
       stopTicker();
       return updated;
     });
-  }, []);
+  }, [uid]);
 
   const resumeTimer = useCallback(() => {
     setActiveMatch((prev) => {
@@ -126,39 +168,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         totalPausedMs: prev.totalPausedMs + extraPaused,
         pausedAt: null,
       };
-      saveMatch(updated);
+      saveMatchForUser(updated, uid);
       setMatches((all) => all.map((m) => (m.id === updated.id ? updated : m)));
       startTickerFor(updated);
       return updated;
     });
-  }, []);
+  }, [uid]);
 
   const endMatch = useCallback(async () => {
     setActiveMatch((prev) => {
       if (!prev) return null;
       const playtime = Math.floor(getElapsedSeconds(prev));
-      const finished: Match = {
-        ...prev,
-        isActive: false,
-        playtime,
-        pausedAt: null,
-      };
-      saveMatch(finished);
+      const finished: Match = { ...prev, isActive: false, playtime, pausedAt: null };
+      saveMatchForUser(finished, uid);
       setMatches((all) => all.map((m) => (m.id === finished.id ? finished : m)));
       stopTicker();
       return null;
     });
-  }, []);
+  }, [uid]);
 
-  const deleteMatch = useCallback(async (matchId: string) => {
-    await deleteMatchFromStorage(matchId);
-    setMatches((prev) => prev.filter((m) => m.id !== matchId));
-  }, []);
+  const deleteMatch = useCallback(
+    async (matchId: string) => {
+      await deleteMatchForUser(matchId, uid);
+      setMatches((prev) => prev.filter((m) => m.id !== matchId));
+    },
+    [uid]
+  );
 
   const getMatchById = useCallback(
     (id: string) => matches.find((m) => m.id === id),
     [matches]
   );
+
+  const signOut = useCallback(async () => {
+    if (isFirebaseConfigured()) await fbSignOut(auth);
+    setMatches([]);
+    setActiveMatch(null);
+    stopTicker();
+  }, []);
 
   return (
     <AppContext.Provider
@@ -167,6 +214,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         activeMatch,
         elapsedSeconds,
         isTimerRunning,
+        currentUser,
+        isAuthLoading,
         createMatch,
         logEvent,
         undoLastEvent,
@@ -175,6 +224,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         endMatch,
         deleteMatch,
         getMatchById,
+        signOut,
       }}
     >
       {children}

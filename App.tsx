@@ -81,7 +81,7 @@ function RootNavigator() {
   }
 
   return (
-    <NavigationContainer theme={NAV_THEME}>
+    <NavigationContainer theme={NAV_THEME} style={{ flex: 1 }}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,

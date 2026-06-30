@@ -19,6 +19,9 @@
       },
       "package": "com.gkstats.app"
     },
-    "plugins": []
+    "plugins": [],
+    "web": {
+      "backgroundColor": "#0d1117"
+    }
   }
 }

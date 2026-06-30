@@ -63,9 +63,13 @@ export default function HomeScreen() {
             <Text style={styles.appName}>GK Stats</Text>
             <Text style={styles.subtitle}>Goalkeeper Performance Tracker</Text>
           </View>
-          {currentUser && !currentUser.isAnonymous && (
+          {currentUser && (
             <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>
-              <Ionicons name="log-out-outline" size={20} color="#8b949e" />
+              <Ionicons
+                name={currentUser.isAnonymous ? 'person-outline' : 'log-out-outline'}
+                size={20}
+                color="#8b949e"
+              />
             </TouchableOpacity>
           )}
         </View>

@@ -143,8 +143,12 @@ function friendlyError(code: string): string {
     'auth/invalid-email': 'Please enter a valid email address.',
     'auth/too-many-requests': 'Too many attempts. Please try again later.',
     'auth/network-request-failed': 'Network error. Check your connection.',
+    'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase Console.',
+    'auth/unauthorized-domain': 'This domain is not authorised in Firebase Console → Authentication → Settings → Authorised domains.',
+    'auth/invalid-credential': 'Invalid credentials. Check your email and password.',
+    'auth/invalid-api-key': 'Invalid Firebase API key. Check your environment variables.',
   };
-  return messages[code] ?? 'Something went wrong. Please try again.';
+  return messages[code] ?? `Something went wrong (${code}). Please try again.`;
 }
 
 const styles = StyleSheet.create({

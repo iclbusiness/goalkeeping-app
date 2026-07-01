@@ -1,45 +1,79 @@
 export const CLUBS: string[] = [
-  // Premier League
-  'Arsenal', 'Aston Villa', 'Bournemouth', 'Brentford', 'Brighton & Hove Albion',
-  'Chelsea', 'Crystal Palace', 'Everton', 'Fulham', 'Ipswich Town',
-  'Leicester City', 'Liverpool', 'Manchester City', 'Manchester United',
-  'Newcastle United', 'Nottingham Forest', 'Southampton', 'Tottenham Hotspur',
-  'West Ham United', 'Wolverhampton Wanderers',
+  // ECNL Girls NorCal
+  'Bay Oaks SC',
+  'California Thorns FC',
+  'De Anza Force SC',
+  'East Bay United SC',
+  'FC Bay Area Surf',
+  'FC NOVA',
+  'Golden State FC',
+  'Legends FC',
+  'Mustang SC',
+  'Pleasanton Rage',
+  'Sacramento Republic FC Girls',
+  'San Jose Earthquakes Girls Academy',
 
-  // Championship
-  'Blackburn Rovers', 'Bristol City', 'Burnley', 'Cardiff City', 'Coventry City',
-  'Derby County', 'Hull City', 'Leeds United', 'Luton Town', 'Middlesbrough',
-  'Millwall', 'Norwich City', 'Oxford United', 'Plymouth Argyle', 'Portsmouth',
-  'Preston North End', 'Queens Park Rangers', 'Sheffield United', 'Sheffield Wednesday',
-  'Stoke City', 'Sunderland', 'Swansea City', 'Watford', 'West Bromwich Albion',
+  // ECNL Boys NorCal
+  'California Odyssey SC',
+  'San Francisco City SC',
+  'Sporting California',
 
-  // League One
-  'Birmingham City', 'Bolton Wanderers', 'Charlton Athletic', 'Exeter City',
-  'Huddersfield Town', 'Leyton Orient', 'Lincoln City', 'Peterborough United',
-  'Reading', 'Rotherham United', 'Stockport County', 'Wigan Athletic',
+  // ECNL Regional League NorCal
+  'Almaden Valley AC',
+  'Ballistic United SC',
+  'Burlingame Dragons SC',
+  'Davis Legacy SC',
+  'Folsom Lake SC',
+  'Fremont Fury SC',
+  'Grizzlies SC',
+  'Impact SC',
+  'Lamorinda SC',
+  'Livermore Valley FC',
+  'Los Gatos SC',
+  'Marin FC',
+  'Norcal FC',
+  'Palo Alto SC',
+  'Sacramento Gold FC',
+  'Silicon Valley FC',
+  'Stockton SC',
+  'Tri-City Surf',
+  'West Coast FC NorCal',
+  'Wolves SC',
 
-  // Scottish Premiership
-  'Aberdeen', 'Celtic', 'Dundee', 'Dundee United', 'Hearts', 'Hibernian',
-  'Kilmarnock', 'Motherwell', 'Rangers', 'Ross County', 'St Johnstone', 'St Mirren',
+  // MLS Next NorCal
+  'Central Valley Fuego FC Academy',
+  'De Anza Force SC Academy',
+  'East Bay United SC Academy',
+  'Sacramento Republic FC Academy',
+  'San Jose Earthquakes Academy',
 
-  // La Liga
-  'Athletic Club', 'Atletico Madrid', 'FC Barcelona', 'Getafe', 'Girona',
-  'Osasuna', 'Real Betis', 'Real Madrid', 'Real Sociedad', 'Sevilla',
-  'Valencia', 'Villarreal',
-
-  // Bundesliga
-  'Bayer Leverkusen', 'Bayern Munich', 'Borussia Dortmund', 'Borussia Monchengladbach',
-  'Eintracht Frankfurt', 'Hoffenheim', 'RB Leipzig', 'SC Freiburg',
-  'Union Berlin', 'VfB Stuttgart', 'VfL Wolfsburg', 'Werder Bremen',
-
-  // Serie A
-  'AC Milan', 'AS Roma', 'Atalanta', 'Bologna', 'Fiorentina',
-  'Inter Milan', 'Juventus', 'Lazio', 'Napoli', 'Torino',
-
-  // Ligue 1
-  'Lens', 'Lille', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'PSG', 'Rennes',
-
-  // Champions League regulars / others
-  'Ajax', 'Benfica', 'Club Brugge', 'Feyenoord', 'Galatasaray',
-  'Porto', 'PSV Eindhoven', 'Sporting CP',
+  // NorCal Premier / GotSport 2026
+  'Albion SC NorCal',
+  'Atletico Santa Rosa',
+  'Ballistix SC',
+  'Bay FC Academy',
+  'Capital United SC',
+  'Crossfire Premier NorCal',
+  'Davis United FC',
+  'Del Mar Soccer Club',
+  'Diablo FC',
+  'FC Golden State North',
+  'Fresno Fuego FC',
+  'Golden West FC',
+  'Granite Bay FC',
+  'Modesto FC',
+  'North Valley SC',
+  'Sacramento Bounty FC',
+  'San Francisco Glens SC',
+  'San Jose Club Atletico',
+  'Santa Cruz FC',
+  'Sereno SC',
+  'Sonoma FC',
+  'Sporting KC NorCal',
+  'Stanislaus SC',
+  'Tahoe FC',
+  'Valley United FC',
+  'Ventura County FC NorCal',
+  'Visalia FC',
+  'Willow Glen FC',
 ];

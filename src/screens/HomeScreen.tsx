@@ -21,7 +21,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const { matches, activeMatch, createMatch, currentUser, signOut } = useApp();
+  const { matches, activeMatch, createMatch, currentUser, signOut, userProfile } = useApp();
   const [showNewMatch, setShowNewMatch] = useState(false);
 
   const recentMatches = matches.filter((m) => !m.isActive).slice(0, 5);
@@ -59,9 +59,17 @@ export default function HomeScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.appName}>GK Stats</Text>
-            <Text style={styles.subtitle}>Goalkeeper Performance Tracker</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.appName}>
+              {userProfile?.name ? `Hi, ${userProfile.name}` : 'GK Stats'}
+            </Text>
+            {userProfile?.myTeam ? (
+              <Text style={styles.subtitle} numberOfLines={1}>
+                {userProfile.myTeam.split(' - ')[0]}
+              </Text>
+            ) : (
+              <Text style={styles.subtitle}>Goalkeeper Performance Tracker</Text>
+            )}
           </View>
           {currentUser && (
             <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>

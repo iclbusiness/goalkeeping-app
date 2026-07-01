@@ -14,6 +14,7 @@ import { AppProvider, useApp } from './src/context/AppContext';
 import { isFirebaseConfigured } from './src/config/firebase';
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import MatchScreen from './src/screens/MatchScreen';
 import MatchSummaryScreen from './src/screens/MatchSummaryScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -53,6 +54,7 @@ function MainTabs() {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Home: focused ? 'home' : 'home-outline',
             History: focused ? 'list' : 'list-outline',
+            Profile: focused ? 'person-circle' : 'person-circle-outline',
           };
           return <Ionicons name={icons[route.name] ?? 'ellipse'} size={size} color={color} />;
         },
@@ -60,6 +62,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="History" component={HistoryScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }

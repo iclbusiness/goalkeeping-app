@@ -12,6 +12,18 @@ import {
 } from 'react-native';
 import { CLUBS } from '../data/clubs';
 
+function divisionColor(division: string): string {
+  if (division === 'MLS Next') return '#00e676';
+  if (division === 'ECNL') return '#7c4dff';
+  if (division === 'ECNL RL') return '#b388ff';
+  if (division === 'NorCal Premier') return '#ffd740';
+  if (division === 'Gold') return '#ffab40';
+  if (division === 'Silver') return '#e0e0e0';
+  if (division === 'Bronze') return '#ff6d00';
+  if (division === 'Copper') return '#ef9a9a';
+  return '#8b949e';
+}
+
 interface NewMatchModalProps {
   visible: boolean;
   onStart: (opponent: string, competition: string) => void;
@@ -77,11 +89,17 @@ export default function NewMatchModal({ visible, onStart, onCancel }: NewMatchMo
           {showSuggestions && suggestions.length > 0 && (
             <View style={styles.dropdown}>
               <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
-                {suggestions.map((club) => (
-                  <TouchableOpacity key={club} style={styles.suggestion} onPress={() => selectClub(club)}>
-                    <Text style={styles.suggestionText}>{club}</Text>
-                  </TouchableOpacity>
-                ))}
+                {suggestions.map((club) => {
+                  const [teamName, div] = club.includes(' - ') ? club.split(' - ') : [club, ''];
+                  return (
+                    <TouchableOpacity key={club} style={styles.suggestion} onPress={() => selectClub(club)}>
+                      <Text style={styles.suggestionTeam}>{teamName}</Text>
+                      {div ? (
+                        <Text style={[styles.suggestionDiv, { color: divisionColor(div) }]}>{div}</Text>
+                      ) : null}
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </View>
           )}
@@ -89,7 +107,7 @@ export default function NewMatchModal({ visible, onStart, onCancel }: NewMatchMo
           <Text style={styles.label}>Competition (optional)</Text>
           <TextInput
             style={[styles.input, { marginBottom: 16 }]}
-            placeholder="e.g. Premier League"
+            placeholder="e.g. NorCal Premier, Gold, Friendly…"
             placeholderTextColor="#6e7681"
             value={competition}
             onChangeText={setCompetition}
@@ -160,12 +178,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   suggestion: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#21262d',
   },
-  suggestionText: { color: '#e6edf3', fontSize: 15 },
+  suggestionTeam: { color: '#e6edf3', fontSize: 14, flex: 1 },
+  suggestionDiv: { fontSize: 12, fontWeight: '700', marginLeft: 8 },
   startBtn: {
     backgroundColor: '#00e676',
     borderRadius: 14,

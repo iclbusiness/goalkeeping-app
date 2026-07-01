@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { onAuthStateChanged, signOut as fbSignOut, User } from 'firebase/auth';
-import { Match, StatEventType, StatEvent } from '../types';
+import { Match, StatEventType, StatEvent, UserProfile } from '../types';
 import { auth, isFirebaseConfigured } from '../config/firebase';
 import {
   loadMatchesForUser,
@@ -8,7 +8,7 @@ import {
   deleteMatchForUser,
   subscribeToMatches,
 } from '../utils/cloudStorage';
-import { loadMatches } from '../utils/storage';
+import { loadMatches, loadProfile, saveProfile } from '../utils/storage';
 import { generateId, getElapsedSeconds } from '../utils/calculations';
 
 interface AppContextValue {
@@ -18,6 +18,7 @@ interface AppContextValue {
   isTimerRunning: boolean;
   currentUser: User | null;
   isAuthLoading: boolean;
+  userProfile: UserProfile | null;
   createMatch: (opponent: string, competition: string) => Match;
   logEvent: (type: StatEventType) => void;
   undoLastEvent: () => void;
@@ -27,6 +28,7 @@ interface AppContextValue {
   deleteMatch: (matchId: string) => Promise<void>;
   getMatchById: (id: string) => Match | undefined;
   signOut: () => Promise<void>;
+  updateProfile: (profile: UserProfile) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -37,8 +39,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(isFirebaseConfigured());
+  const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const uid = currentUser?.uid ?? null;
+
+  useEffect(() => {
+    loadProfile().then(setUserProfileState);
+  }, []);
 
   // Auth state listener
   useEffect(() => {
@@ -207,6 +214,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     stopTicker();
   }, []);
 
+  const updateProfile = useCallback(async (profile: UserProfile) => {
+    await saveProfile(profile);
+    setUserProfileState(profile);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -216,6 +228,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isTimerRunning,
         currentUser,
         isAuthLoading,
+        userProfile,
         createMatch,
         logEvent,
         undoLastEvent,
@@ -225,6 +238,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         deleteMatch,
         getMatchById,
         signOut,
+        updateProfile,
       }}
     >
       {children}

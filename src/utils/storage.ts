@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Match } from '../types';
+import { Match, UserProfile } from '../types';
 
 const MATCHES_KEY = '@gkstats_matches';
 
@@ -31,4 +31,19 @@ export async function saveMatch(match: Match): Promise<void> {
 export async function deleteMatch(matchId: string): Promise<void> {
   const all = await loadMatches();
   await saveMatches(all.filter((m) => m.id !== matchId));
+}
+
+const PROFILE_KEY = '@gkstats_profile';
+
+export async function loadProfile(): Promise<UserProfile | null> {
+  try {
+    const raw = await AsyncStorage.getItem(PROFILE_KEY);
+    return raw ? (JSON.parse(raw) as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveProfile(profile: UserProfile): Promise<void> {
+  await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
 }

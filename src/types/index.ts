@@ -69,6 +69,12 @@ export interface VideoAnalysisResult {
   analyzedAt: number;
 }
 
+export interface UserProfile {
+  name: string;
+  myTeam: string;
+  jerseyNumber: string;
+}
+
 export type RootStackParamList = {
   MainTabs: undefined;
   Match: { matchId: string };
@@ -79,4 +85,5 @@ export type RootStackParamList = {
 export type TabParamList = {
   Home: undefined;
   History: undefined;
+  Profile: undefined;
 };

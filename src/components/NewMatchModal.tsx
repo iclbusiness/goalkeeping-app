@@ -8,7 +8,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
+import { CLUBS } from '../data/clubs';
 
 interface NewMatchModalProps {
   visible: boolean;
@@ -19,16 +21,28 @@ interface NewMatchModalProps {
 export default function NewMatchModal({ visible, onStart, onCancel }: NewMatchModalProps) {
   const [opponent, setOpponent] = useState('');
   const [competition, setCompetition] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const suggestions = opponent.trim().length >= 2
+    ? CLUBS.filter((c) => c.toLowerCase().includes(opponent.toLowerCase())).slice(0, 6)
+    : [];
+
+  function selectClub(club: string) {
+    setOpponent(club);
+    setShowSuggestions(false);
+  }
 
   function handleStart() {
     onStart(opponent.trim(), competition.trim());
     setOpponent('');
     setCompetition('');
+    setShowSuggestions(false);
   }
 
   function handleCancel() {
     setOpponent('');
     setCompetition('');
+    setShowSuggestions(false);
     onCancel();
   }
 
@@ -38,22 +52,43 @@ export default function NewMatchModal({ visible, onStart, onCancel }: NewMatchMo
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
       >
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={handleCancel} />
         <View style={styles.sheet}>
           <Text style={styles.title}>New Match</Text>
 
           <Text style={styles.label}>Opponent (optional)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. FC Barcelona"
-            placeholderTextColor="#6e7681"
-            value={opponent}
-            onChangeText={setOpponent}
-            autoFocus
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Search club or type name…"
+              placeholderTextColor="#6e7681"
+              value={opponent}
+              onChangeText={(t) => { setOpponent(t); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              autoFocus
+            />
+            {opponent.length > 0 && (
+              <TouchableOpacity style={styles.clearBtn} onPress={() => { setOpponent(''); setShowSuggestions(false); }}>
+                <Text style={styles.clearText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {showSuggestions && suggestions.length > 0 && (
+            <View style={styles.dropdown}>
+              <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+                {suggestions.map((club) => (
+                  <TouchableOpacity key={club} style={styles.suggestion} onPress={() => selectClub(club)}>
+                    <Text style={styles.suggestionText}>{club}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           <Text style={styles.label}>Competition (optional)</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { marginBottom: 16 }]}
             placeholder="e.g. Premier League"
             placeholderTextColor="#6e7681"
             value={competition}
@@ -78,8 +113,11 @@ export default function NewMatchModal({ visible, onStart, onCancel }: NewMatchMo
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
   sheet: {
     backgroundColor: '#161b22',
@@ -93,6 +131,7 @@ const styles = StyleSheet.create({
   },
   title: { color: '#e6edf3', fontSize: 20, fontWeight: '800', marginBottom: 20 },
   label: { color: '#8b949e', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  inputWrapper: { position: 'relative', marginBottom: 4 },
   input: {
     backgroundColor: '#0d1117',
     borderWidth: 1,
@@ -101,8 +140,32 @@ const styles = StyleSheet.create({
     padding: 14,
     color: '#e6edf3',
     fontSize: 15,
-    marginBottom: 16,
   },
+  clearBtn: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    padding: 4,
+  },
+  clearText: { color: '#6e7681', fontSize: 14 },
+  dropdown: {
+    backgroundColor: '#0d1117',
+    borderWidth: 1,
+    borderColor: '#30363d',
+    borderRadius: 10,
+    marginBottom: 12,
+    maxHeight: 200,
+    overflow: 'hidden',
+  },
+  suggestion: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#21262d',
+  },
+  suggestionText: { color: '#e6edf3', fontSize: 15 },
   startBtn: {
     backgroundColor: '#00e676',
     borderRadius: 14,

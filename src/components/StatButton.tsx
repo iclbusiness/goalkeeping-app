@@ -9,6 +9,7 @@ interface StatButtonProps {
   onPress: () => void;
   count?: number;
   size?: 'large' | 'medium';
+  disabled?: boolean;
 }
 
 export default function StatButton({
@@ -18,8 +19,10 @@ export default function StatButton({
   onPress,
   count,
   size = 'large',
+  disabled = false,
 }: StatButtonProps) {
   const handlePress = async () => {
+    if (disabled) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onPress();
   };
@@ -28,16 +31,19 @@ export default function StatButton({
 
   return (
     <TouchableOpacity
-      style={[styles.button, { borderColor: color }, isLarge ? styles.large : styles.medium]}
+      style={[styles.button, { borderColor: disabled ? '#30363d' : color }, isLarge ? styles.large : styles.medium, disabled && styles.disabled]}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={disabled ? 1 : 0.7}
     >
-      <Text style={[styles.emoji, isLarge ? styles.emojiLarge : styles.emojiMedium]}>{emoji}</Text>
-      <Text style={[styles.label, { color }]}>{label}</Text>
-      {count !== undefined && (
+      <Text style={[styles.emoji, isLarge ? styles.emojiLarge : styles.emojiMedium, disabled && styles.dimmed]}>{emoji}</Text>
+      <Text style={[styles.label, { color: disabled ? '#484f58' : color }]}>{label}</Text>
+      {!disabled && count !== undefined && (
         <View style={[styles.badge, { backgroundColor: color }]}>
           <Text style={styles.badgeText}>{count}</Text>
         </View>
+      )}
+      {disabled && (
+        <Text style={styles.disabledLabel}>MAX</Text>
       )}
     </TouchableOpacity>
   );
@@ -95,5 +101,19 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 11,
     fontWeight: '800',
+  },
+  disabled: {
+    backgroundColor: '#0d1117',
+    opacity: 0.4,
+  },
+  dimmed: {
+    opacity: 0.4,
+  },
+  disabledLabel: {
+    color: '#484f58',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginTop: 2,
   },
 });

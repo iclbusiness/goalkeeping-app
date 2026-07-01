@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -53,6 +52,8 @@ export default function MatchScreen() {
     getMatchById,
   } = useApp();
 
+  const [confirmEnd, setConfirmEnd] = useState(false);
+
   const match = activeMatch ?? getMatchById(route.params.matchId);
 
   useEffect(() => {
@@ -70,36 +71,16 @@ export default function MatchScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
-  function handleEndMatch() {
-    Alert.alert(
-      'End Match?',
-      'This will finalise your stats and calculate your rating.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'End Match',
-          style: 'destructive',
-          onPress: async () => {
-            const matchId = match!.id;
-            await endMatch();
-            navigation.replace('MatchSummary', { matchId });
-          },
-        },
-      ]
-    );
+  async function confirmEndMatch() {
+    const matchId = match!.id;
+    await endMatch();
+    setConfirmEnd(false);
+    navigation.replace('MatchSummary', { matchId });
   }
 
   function handleUndo() {
-    Alert.alert('Undo', 'Remove the last logged event?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Undo',
-        onPress: () => {
-          undoLastEvent();
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-        },
-      },
-    ]);
+    undoLastEvent();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   }
 
   if (!match) return null;
@@ -214,6 +195,7 @@ export default function MatchScreen() {
             color="#ffd740"
             count={stats.yellowCards}
             onPress={() => logEvent('yellow_card')}
+            disabled={stats.yellowCards >= 2}
           />
           <StatButton
             size="medium"
@@ -222,6 +204,7 @@ export default function MatchScreen() {
             color="#ff1744"
             count={stats.redCards}
             onPress={() => logEvent('red_card')}
+            disabled={stats.redCards >= 1}
           />
         </View>
       </ScrollView>
@@ -233,11 +216,29 @@ export default function MatchScreen() {
           <Text style={styles.undoBtnText}>Undo</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.endBtn} onPress={handleEndMatch}>
+        <TouchableOpacity style={styles.endBtn} onPress={() => setConfirmEnd(true)}>
           <Ionicons name="flag" size={18} color="#000" />
           <Text style={styles.endBtnText}>End Match</Text>
         </TouchableOpacity>
       </View>
+
+      {/* End match confirmation overlay */}
+      {confirmEnd && (
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmSheet}>
+            <Text style={styles.confirmTitle}>End Match?</Text>
+            <Text style={styles.confirmBody}>
+              This will finalise your stats and calculate your rating.
+            </Text>
+            <TouchableOpacity style={styles.confirmEndBtn} onPress={confirmEndMatch}>
+              <Text style={styles.confirmEndBtnText}>End Match</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmCancelBtn} onPress={() => setConfirmEnd(false)}>
+              <Text style={styles.confirmCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -338,4 +339,31 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   endBtnText: { color: '#000', fontSize: 16, fontWeight: '800' },
+  confirmOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'flex-end',
+  },
+  confirmSheet: {
+    backgroundColor: '#161b22',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: '#30363d',
+  },
+  confirmTitle: { color: '#e6edf3', fontSize: 20, fontWeight: '800', marginBottom: 8 },
+  confirmBody: { color: '#8b949e', fontSize: 14, marginBottom: 24, lineHeight: 20 },
+  confirmEndBtn: {
+    backgroundColor: '#ff1744',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  confirmEndBtnText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  confirmCancelBtn: { paddingVertical: 12, alignItems: 'center' },
+  confirmCancelText: { color: '#8b949e', fontSize: 15 },
 });

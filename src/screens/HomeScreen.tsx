@@ -65,11 +65,10 @@ export default function HomeScreen() {
           </View>
           {currentUser && (
             <TouchableOpacity onPress={signOut} style={styles.signOutBtn}>
-              <Ionicons
-                name={currentUser.isAnonymous ? 'person-outline' : 'log-out-outline'}
-                size={20}
-                color="#8b949e"
-              />
+              <Ionicons name="log-out-outline" size={16} color="#8b949e" />
+              <Text style={styles.signOutText}>
+                {currentUser.isAnonymous ? 'Sign in' : 'Sign out'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -204,7 +203,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, marginTop: 4 },
   appName: { color: '#e6edf3', fontSize: 30, fontWeight: '900', letterSpacing: -0.5 },
   subtitle: { color: '#8b949e', fontSize: 13, marginTop: 2 },
-  signOutBtn: { padding: 8 },
+  signOutBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 8, backgroundColor: '#161b22', borderRadius: 8, borderWidth: 1, borderColor: '#30363d' },
+  signOutText: { color: '#8b949e', fontSize: 13 },
   activeBanner: {
     backgroundColor: '#0d2818',
     borderColor: '#00e676',
